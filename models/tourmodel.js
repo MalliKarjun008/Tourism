@@ -111,6 +111,10 @@ const tourschema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+    // Reviews: [{
+    //   type: mongoose.Schema.ObjectId,         child reference to review model,but not used in this case alternative is to use virtual populate
+    //   ref: 'Review',  
+    // }]
   },
   {
     toJSON: { virtuals: true },
@@ -122,6 +126,11 @@ tourschema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+tourschema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour',
+  localField: '_id',
+});
 // DOCUMENT MIDDLEWARE: runs before .save() and .create()
 tourschema.pre('save', function (next) {
   console.log('🔥 Slug middleware running...');
