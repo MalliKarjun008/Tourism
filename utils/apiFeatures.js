@@ -3,29 +3,21 @@ class APIFeatures {
     this.query = query;
     this.queryString = queryString;
   }
-  filter() {
-    const queryObj = { ...this.queryString };
-    const excludedFields = ['page', 'sort', 'limit', 'fields'];
-    excludedFields.forEach((el) => delete queryObj[el]);
+ filter() {
+  const queryObj = { ...this.queryString };
+  const excludedFields = ['page', 'sort', 'limit', 'fields'];
+  excludedFields.forEach(el => delete queryObj[el]);
 
-    const mongoQuery = {};
+  // Advanced filtering
+  let queryStr = JSON.stringify(queryObj);
+  queryStr = queryStr.replace(
+    /\b(gte|gt|lte|lt|ne|eq)\b/g,
+    match => `$${match}`
+  );
 
-    for (let key in queryObj) {
-      const value = queryObj[key];
-      const match = key.match(/^(.+)\[(gte|gt|lte|lt|ne|eq)\]$/);
-      if (match) {
-        const field = match[1];
-        const operator = `$${match[2]}`;
-        if (!mongoQuery[field]) mongoQuery[field] = {};
-        mongoQuery[field][operator] = isNaN(value) ? value : Number(value);
-      } else {
-        mongoQuery[key] = isNaN(value) ? value : Number(value);
-      }
-    }
-
-    this.query = this.query.find(mongoQuery);
-    return this;
-  }
+  this.query = this.query.find(JSON.parse(queryStr));
+  return this;
+}
   sort() {
     if (this.queryString.sort) {
       const sortBy = this.queryString.sort.split(',').join(' ');
